@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cipher</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Cipher" />
+  <meta property="og:description" content="Type a phrase and Cipher turns it into a shareable strip of glyphs—deterministic, compact, and oddly personal. Tap presets for daily use." />
+  <meta property="og:image" content="https://{DOMAIN}/assets/hero.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://{DOMAIN}/" />
+
+  <!-- Farcaster Mini App meta (JSON-stringified, valid JSON!) -->
+  <meta name="fc:miniapp" content="{&quot;version&quot;: &quot;1&quot;, &quot;name&quot;: &quot;Cipher&quot;, &quot;homeUrl&quot;: &quot;https://{DOMAIN}/&quot;, &quot;iconUrl&quot;: &quot;https://{DOMAIN}/assets/icon.png&quot;, &quot;splashImageUrl&quot;: &quot;https://{DOMAIN}/assets/splash.png&quot;, &quot;splashBackgroundColor&quot;: &quot;#020617&quot;, &quot;subtitle&quot;: &quot;Turn words into symbols.&quot;, &quot;description&quot;: &quot;Type a phrase and Cipher turns it into a shareable strip of glyphs—deterministic, compact, and oddly personal. Tap presets for daily use.&quot;, &quot;primaryCategory&quot;: &quot;utility&quot;, &quot;tags&quot;: [&quot;fun&quot;, &quot;simple&quot;, &quot;utility&quot;], &quot;heroImageUrl&quot;: &quot;https://{DOMAIN}/assets/hero.png&quot;, &quot;ogTitle&quot;: &quot;Cipher&quot;, &quot;ogDescription&quot;: &quot;Type a phrase and Cipher turns it into a shareable strip of glyphs—deterministic, compact, and oddly personal. Tap presets for daily use.&quot;, &quot;ogImageUrl&quot;: &quot;https://{DOMAIN}/assets/hero.png&quot;, &quot;screenshotUrls&quot;: [&quot;https://{DOMAIN}/assets/hero.png&quot;], &quot;noindex&quot;: true, &quot;imageUrl&quot;: &quot;https://{DOMAIN}/assets/embed-3x2.png&quot;, &quot;button&quot;: {&quot;title&quot;: &quot;Open&quot;, &quot;action&quot;: {&quot;type&quot;: &quot;launch_frame&quot;, &quot;url&quot;: &quot;https://{DOMAIN}/&quot;}}}" />
+
+  <!-- Backwards compatible Farcaster Frame tags -->
+  <meta property="fc:frame" content="vNext" />
+  <meta property="fc:frame:image" content="https://{DOMAIN}/assets/embed-3x2.png" />
+  <meta property="fc:frame:button:1" content="Open" />
+  <meta property="fc:frame:button:1:action" content="link" />
+  <meta property="fc:frame:button:1:target" content="https://{DOMAIN}/" />
+
+  <!-- launch_frame + required splash fields -->
+  <meta property="fc:frame:action" content="launch_frame" />
+  <meta property="fc:frame:post_url" content="https://{DOMAIN}/" />
+  <meta property="fc:frame:splash_image" content="https://{DOMAIN}/assets/splash.png" />
+  <meta property="fc:frame:splash_background_color" content="#020617" />
+
+  <style>
+    :root {
+      --bg:#020617; --text:#e2e8f0; --muted:#94a3b8; --line:rgba(148,163,184,.25);
+      --shadow:0 18px 50px rgba(0,0,0,.45); --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 900px at 25% 10%, rgba(99,102,241,.20), transparent 55%),
+        radial-gradient(900px 700px at 85% 35%, rgba(34,197,94,.12), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      -webkit-font-smoothing: antialiased;
+    }
+    .page{min-height:100%;display:flex;justify-content:center;padding:16px}
+    .shell{width:100%;max-width:560px;display:flex;flex-direction:column;gap:12px}
+    .banner{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;border:1px solid var(--line);border-radius:16px;
+      background:rgba(2,6,23,.45);backdrop-filter:blur(10px);
+    }
+    .title strong{font-size:14px;letter-spacing:.12em}
+    .title span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+    #status{font-size:12px;color:var(--muted);text-align:right;max-width:220px;line-height:1.2}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="shell">
+      <div class="banner">
+        <div class="title">
+          <strong>Cipher</strong>
+          <span>Turn words into symbols.</span>
+        </div>
+        <div id="status">Loading…</div>
+      </div>
+
+      <div id="app" aria-label="Cipher Mini App"></div>
+    </div>
+  </div>
+
+  <style>
+    /* App UI styles (kept in-page for minimal build) */
+    .wrap{display:flex;flex-direction:column;gap:12px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 4px}
+    .logo{font-weight:900;letter-spacing:.16em;font-size:13px}
+    .sub{font-size:12px;color:var(--muted);margin-top:3px}
+
+    .card{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow:var(--shadow);
+      border-radius:var(--radius);
+      padding:14px;
+    }
+    .hint{font-size:12px;color:var(--muted);line-height:1.25;margin-bottom:10px}
+    .field{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px}
+    input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      font-size:14px;
+      outline:none;
+    }
+    input:focus{border-color:rgba(99,102,241,.55)}
+
+    canvas{
+      width:100%;
+      height:84px;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.16);
+      background:rgba(0,0,0,.12);
+      margin-bottom:12px;
+    }
+
+    .out{display:grid;gap:8px}
+    .label{font-size:12px;color:var(--muted);letter-spacing:.08em}
+    .glyphText{
+      padding:12px 12px;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,.16);
+      background:rgba(0,0,0,.14);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing:.08em;
+      overflow-wrap:anywhere;
+      user-select:text;
+    }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    .btn{
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      border-radius:16px;
+      padding:12px 12px;
+      font-weight:800;
+      font-size:14px;
+      cursor:pointer;
+      transition:transform .08s ease, background .18s ease, border-color .18s ease;
+    }
+    .btn:active{transform:scale(.99)}
+    .btn:hover{background:rgba(255,255,255,.10);border-color:rgba(148,163,184,.30)}
+    .btn.ghost{background:transparent}
+
+    .presetTitle{margin-top:12px;font-size:12px;color:var(--muted);letter-spacing:.08em}
+    .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .pill{
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(0,0,0,.14);
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .pill:hover{border-color:rgba(99,102,241,.45)}
+
+    .foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 4px;color:var(--muted);font-size:12px}
+    .envpill{padding:6px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(0,0,0,.14)}
+
+    @media (max-width:380px){
+      .field{grid-template-columns:1fr}
+      .row{grid-template-columns:1fr}
+      #status{max-width:170px}
+    }
+  </style>
+
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
